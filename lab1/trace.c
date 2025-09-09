@@ -58,7 +58,7 @@ SEC("kprobe/__x64_sys_execve")
 int kprobe_execve_non_core(struct pt_regs *ctx) {
     char *filename = (char *)PT_REGS_PARM1(ctx);
 
-    // This is not portable, so you might have to actually replace the first line with this
+    // This is INTENTIONALLY not portable, so you might have to actually replace the first line with this
     //struct pt_regs *ctx2 = (struct pt_regs *)PT_REGS_PARM1(ctx);
     //char *filename = (char *)PT_REGS_PARM1(ctx2);
 
@@ -76,9 +76,9 @@ int fentry_execve(u64 *ctx) {
     // Direct kernel memory access
     struct pt_regs *regs = (struct pt_regs *)ctx[0];
 
-    char *filename = (char *)PT_REGS_PARM1_CORE(regs);
+    char *filename = (char *)PT_REGS_PARM1(regs);
     char buf[ARGSIZE];
-    bpf_core_read_user_str(buf, sizeof(buf), filename);
+    bpf_probe_read_user_str(buf, sizeof(buf), filename);
 
     bpf_printk("Fentry tracepoint triggered (CO-RE) for execve syscall with parameter filename: %s\n", buf);
     return 0;
