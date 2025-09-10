@@ -34,7 +34,7 @@ int handle_execve_tp_non_core(struct trace_sys_enter_execve *ctx) {
 
 SEC("raw_tracepoint/sys_enter")
 int handle_execve_raw_tp_non_core(struct bpf_raw_tracepoint_args *ctx) {
-    // There is no method to attach a raw_tp or tp_btf directly to a single syscall... 
+    // There is no method to attach a raw_tp directly to a single syscall... 
     // this is because there are no static defined tracepoints on single syscalls but only on generic sys_enter/sys_exit
     // So we have to filter by syscall ID
     unsigned long id = BPF_PROBE_READ(ctx, args[1]);
