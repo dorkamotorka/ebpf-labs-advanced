@@ -50,7 +50,6 @@ int handle_execve_raw_tp_non_core(struct bpf_raw_tracepoint_args *ctx) {
     struct pt_regs *regs = (struct pt_regs *)ctx->args[0];
 
     const char *filename;
-    // Intentionally accessing the register (without using PT_REGS_PARM* macro) directly for illustration
     bpf_probe_read(&filename, sizeof(filename), &regs->di);
 
     char buf[ARGSIZE];
@@ -64,6 +63,8 @@ SEC("kprobe/__x64_sys_execve")
 int kprobe_execve_non_core(struct pt_regs *ctx) {
     // On x86-64, the entry wrapper __x64_sys_execve is called with a pointer to struct pt_regs in %rdi -> pt_regs.di
     struct pt_regs *regs = (struct pt_regs *)ctx->di;
+
+    // Read the filename "from the inner regs"
     unsigned long di = 0;
     bpf_probe_read_kernel(&di, sizeof(di), &regs->di);
     const char *filename = (const char *)di;
@@ -71,15 +72,12 @@ int kprobe_execve_non_core(struct pt_regs *ctx) {
     char buf[ARGSIZE];
     bpf_probe_read_user_str(buf, sizeof(buf), filename);
 
-    // Print the flags value
     bpf_printk("Kprobe triggered for execve syscall with parameter filename: %s\n", buf);
-
     return 0;
 }
 
 SEC("fentry/__x64_sys_execve")
 int fentry_execve(u64 *ctx) {
-    // Direct kernel memory access
     struct pt_regs *regs = (struct pt_regs *)ctx[0];
 
     // x86-64: first arg in rdi -> pt_regs.di
