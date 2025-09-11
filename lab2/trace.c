@@ -93,8 +93,10 @@ int handle_execve_btf(u64 *ctx) {
 
     // Direct kernel memory access here as well
     struct pt_regs *regs = (struct pt_regs *)ctx[0];
+    // You don't need to use PT_REGS_PARM1_CORE helper
     char *filename = (char *)PT_REGS_PARM1(regs);
     char buf[ARGSIZE];
+    // You don't need to use bpf_core_read_user_str helper
     bpf_probe_read_user_str(buf, sizeof(buf), filename);
 
     bpf_printk("BTF-enabled tracepoint (CO-RE) triggered for execve syscall with parameter filename: %s\n", buf);
