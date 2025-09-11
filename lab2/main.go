@@ -63,6 +63,16 @@ func main() {
 	defer fentry.Close()
 	log.Printf("Successfully attached eBPF fprobe...")
 
+	// Attach BTF-Enabled tracepoint
+	tpbtf, err := link.AttachTracing(link.TracingOptions{
+		Program: objs.HandleExecveBtf,
+	})
+	if err != nil {
+		log.Fatalf("Attaching BTF-Enabled Tracepoint: %v", err)
+	}
+	defer tpbtf.Close()
+	log.Printf("Successfully attached BTF-Enabled Tracepoint...")
+
 	// Wait for SIGINT/SIGTERM (Ctrl+C) before exiting
         ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
         defer stop()

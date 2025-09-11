@@ -81,3 +81,22 @@ int fentry_execve(u64 *ctx) {
     bpf_printk("Fentry tracepoint triggered (CO-RE) for execve syscall with parameter filename: %s\n", buf);
     return 0;
 }
+
+SEC("tp_btf/sys_enter")
+int handle_execve_btf(u64 *ctx) {
+    // There is no method to attach a tp_btf directly to a single syscall. Same reason as for the raw_tp
+    // The tracepoint btf version allows you to access kernel memory directly from within the ebpf program.
+    // There is no need to use a helper function like bpf_core_read or bpf_probe_read_kernel to access the kernel memory as in regular raw tracepoint
+    long int syscall_id = (long int)ctx[1];
+    if (syscall_id != 59)  // execve syscall ID
+        return 0;
+
+    // Direct kernel memory access here as well
+    struct pt_regs *regs = (struct pt_regs *)ctx[0];
+    char *filename = (char *)PT_REGS_PARM1(regs);
+    char buf[ARGSIZE];
+    bpf_probe_read_user_str(buf, sizeof(buf), filename);
+
+    bpf_printk("BTF-enabled tracepoint (CO-RE) triggered for execve syscall with parameter filename: %s\n", buf);
+    return 0;
+}
