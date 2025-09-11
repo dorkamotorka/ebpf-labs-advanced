@@ -3,8 +3,11 @@ package main
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 trace trace.c
 
 import (
-	"log"
-	"time"
+        "context"
+        "log"
+        "os"
+        "os/signal"
+        "syscall"
 
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
@@ -60,5 +63,10 @@ func main() {
 	defer fentry.Close()
 	log.Printf("Successfully attached eBPF fprobe...")
 
-	time.Sleep(time.Second * 15)
+	// Wait for SIGINT/SIGTERM (Ctrl+C) before exiting
+        ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+        defer stop()
+
+        <-ctx.Done()
+        log.Println("Received signal, exiting...")
 }
