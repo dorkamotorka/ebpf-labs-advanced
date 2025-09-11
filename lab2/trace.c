@@ -91,13 +91,10 @@ int handle_execve_btf(u64 *ctx) {
     if (syscall_id != 59)  // execve syscall ID
         return 0;
 
-    // Direct kernel memory access here as well
-    struct pt_regs *regs = (struct pt_regs *)ctx[0];
-    // You don't need to use PT_REGS_PARM1_CORE helper
-    char *filename = (char *)PT_REGS_PARM1(regs);
+    struct pt_regs *regs = (struct pt_regs *)ctx[0]; // No need to use BPF_CORE_READ helper
+    char *filename = (char *)PT_REGS_PARM1(regs); // No need to use PT_REGS_PARM1_CORE helper
     char buf[ARGSIZE];
-    // You don't need to use bpf_core_read_user_str helper
-    bpf_probe_read_user_str(buf, sizeof(buf), filename);
+    bpf_probe_read_user_str(buf, sizeof(buf), filename); // No need to use bpf_core_read_user_str helper
 
     bpf_printk("BTF-enabled tracepoint (CO-RE) triggered for execve syscall with parameter filename: %s\n", buf);
     return 0;
