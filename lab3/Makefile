@@ -51,7 +51,7 @@ build:
 # Clean up generated BTF files and eBPF object files
 .PHONY: clean
 clean:
-	@echo "Cleaning btfs directory ($(OUTPUT)), vmlinux file ($(VMLINUX)) and eBPF generated files ($()) "
+	@echo "Cleaning btfs directory ($(OUTPUT)), vmlinux file ($(VMLINUX)) and eBPF generated files"
 	@find $(OUTPUT) -mindepth 1 ! -name '.gitkeep' -delete
-	@rm -f $(VMLINUX)
+	@rm -f $(VMLINUX) *_bpf*.go *.o
 

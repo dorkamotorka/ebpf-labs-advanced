@@ -16,8 +16,8 @@ SOURCE_BTF_FILES = $(shell find $(BTFHUB_ARCHIVE)/ -iregex ".*$(subst x86,x86_64
 # Map each source BTF file to its expected minimal BTF output path
 MIN_CORE_BTF_FILES = $(patsubst $(BTFHUB_ARCHIVE)/%.btf.tar.xz, $(OUTPUT)/$(ARCH_CLEANED)/%.btf, $(SOURCE_BTF_FILES))
 
-# Find all .o files in the current directory that match the architecture or are bpfel objects
-BPF_ALL_O_FILES = $(shell find . -maxdepth 1 -type f -regex ".*\($(ARCH_CLEANED)\|bpfel\).o")
+# BPF objects in the current dir matching "*<arch>.o" or "*bpfel.o"
+BPF_ALL_O_FILES = $(shell find . -maxdepth 1 -type f -regex '.*/.*\($(ARCH_CLEANED)\|bpfel\)\.o$$')
 
 # Default target: generate all minimal BTF files
 .PHONY: all
