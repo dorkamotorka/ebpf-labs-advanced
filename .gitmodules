@@ -1,0 +1,3 @@
+[submodule "lab3/btfhub-archive"]
+	path = lab3/btfhub-archive
+	url = https://github.com/aquasecurity/btfhub-archive.git
