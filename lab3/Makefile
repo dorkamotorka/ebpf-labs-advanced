@@ -53,5 +53,5 @@ build:
 clean:
 	@echo "Cleaning btfs directory ($(OUTPUT)), vmlinux file ($(VMLINUX)) and eBPF generated files"
 	@find $(OUTPUT) -mindepth 1 ! -name '.gitkeep' -delete
-	@rm -f $(VMLINUX) *_bpf*.go *.o
+	@rm -f $(VMLINUX) *_bpf*.go *.o lab3
 

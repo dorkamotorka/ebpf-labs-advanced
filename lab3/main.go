@@ -9,6 +9,7 @@ import (
         "os/signal"
         "syscall"
 
+	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
 )
@@ -19,9 +20,17 @@ func main() {
 		log.Fatal("Removing memlock:", err)
 	}
 
-	// Load the compiled eBPF ELF and load it into the kernel.
+	opts := ebpf.CollectionOptions{
+                Programs: ebpf.ProgramOptions{
+			// This is where the BTF for the identified kernel is loaded
+                        KernelTypes: GetBTFSpec(),
+                },
+        }
+
+
+	// Load the compiled eBPF ELF with BTF information into the kernel
 	var objs traceObjects
-	if err := loadTraceObjects(&objs, nil); err != nil {
+	if err := loadTraceObjects(&objs, &opts); err != nil {
 		log.Fatal("Loading eBPF objects:", err)
 	}
 	defer objs.Close()
