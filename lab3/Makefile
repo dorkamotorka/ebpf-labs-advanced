@@ -18,6 +18,7 @@ OUTPUT ?= btfs
 # Find all eBPF C source files in the current directory
 EBPF_SRC ?= $(wildcard *.c)
 
+# Path to vmlinux.h header file
 VMLINUX ?= vmlinux.h
 
 # Default commands to run
