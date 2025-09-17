@@ -103,7 +103,7 @@ func main() {
 		}
 	}()
 
-	// Start processing records from perf.
+	// Start processing records from records queue.
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
