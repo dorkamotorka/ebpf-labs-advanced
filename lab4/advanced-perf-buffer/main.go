@@ -12,6 +12,7 @@ import (
 	"os/signal"
 	"syscall"
 	"sync"
+	"errors"
 
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
@@ -78,6 +79,11 @@ func main() {
 			rec, err := reader.Read()
 			if err != nil {
 				// When Close() is called, Read() returns an error; exit cleanly.
+				if errors.Is(err, perf.ErrClosed) {
+					return	
+				}
+
+				log.Fatalf("Failed to read perf event: %v", err)
 				return
 			} else {
 				if len(rec.RawSample) > 0 {
