@@ -20,10 +20,7 @@ struct {
 } events SEC(".maps");
 
 SEC("tracepoint/syscalls/sys_enter_execve")
-int handle_execve_tp(struct trace_event_raw_sys_enter *ctx)
-{
-    const char *filename_ptr = (const char *)BPF_CORE_READ(ctx, args[0]);
-
+int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
     // Reserve space on the ring buffer
     struct event *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
     if (!e) {
@@ -36,6 +33,7 @@ int handle_execve_tp(struct trace_event_raw_sys_enter *ctx)
     e->tgid = (u32)pid_tgid;
 
     // Copy filename directly into the ring-buffered event
+    const char *filename_ptr = (const char *)BPF_CORE_READ(ctx, args[0]);
     bpf_core_read_user_str(e->filename, sizeof(e->filename), filename_ptr);
 
     // (Optional) debug message visible via /sys/kernel/debug/tracing/trace_pipe

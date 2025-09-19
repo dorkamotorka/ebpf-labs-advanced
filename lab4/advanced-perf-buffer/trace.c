@@ -21,15 +21,14 @@ struct {
 } events SEC(".maps");
 
 SEC("tracepoint/syscalls/sys_enter_execve")
-int handle_execve_tp(struct trace_event_raw_sys_enter *ctx)
-{
-    const char *filename_ptr = (const char *)BPF_CORE_READ(ctx, args[0]);
-
+int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
     struct event e = {};
+
     u64 pid_tgid = bpf_get_current_pid_tgid();
     e.pid  = pid_tgid >> 32;
     e.tgid = (u32)pid_tgid;
 
+    const char *filename_ptr = (const char *)BPF_CORE_READ(ctx, args[0]);
     bpf_core_read_user_str(e.filename, sizeof(e.filename), filename_ptr);
 
     // Optional debug
