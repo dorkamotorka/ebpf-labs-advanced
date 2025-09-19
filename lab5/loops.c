@@ -6,83 +6,73 @@ char LICENSE[] SEC("license") = "GPL";
 
 #define NUM_LOOPS 100
 
-/* for loop with unroll directive*/
+/* loop with unroll directive*/
+SEC("tracepoint/syscalls/sys_enter_execve")
+int loop_unroll(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-SEC("xdp")
-int xdp_prog_for_loop_unroll(struct xdp_md *ctx) {
-  int counter = 0;
-
-// Standard for loop with unroll directive
+    // Standard for loop with unroll directive
 #pragma clang loop unroll(full)
-  for (int i = 0; i < NUM_LOOPS; i++) {
-    counter++;
-    bpf_printk("Counting...");
-  }
+    for (int i = 0; i < NUM_LOOPS; i++) {
+    	counter++;
+    	bpf_printk("Counting...");
+    }
 
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
 
-/* bounded for loop */
+/* bounded loop */
+SEC("tracepoint/syscalls/sys_enter_execve")
+int bounded_loop(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-SEC("xdp")
-int xdp_prog_for_loop(struct xdp_md *ctx) {
-  int counter = 0;
+    // Standard for loop, iterating NUM_LOOPS times
+    for (int i = 0; i < NUM_LOOPS; i++) {
+	counter++;
+	bpf_printk("Counting...");
+    }
 
-  // Standard for loop, iterating NUM_LOOPS times
-  for (int i = 0; i < NUM_LOOPS; i++) {
-    counter++;
-    bpf_printk("Counting...");
-  }
-
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
 
 /* while loop */
+SEC("tracepoint/syscalls/sys_enter_execve")
+int while_loop(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-SEC("xdp")
-int xdp_prog_while_loop(struct xdp_md *ctx) {
-  int counter = 0;
+    // While loop
+    while (counter < NUM_LOOPS) {
+    	counter++;
+    	bpf_printk("Counting...");
+    }
 
-  // While loop
-  while (counter < NUM_LOOPS) {
-    counter++;
-    bpf_printk("Counting...");
-  }
-
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
 
 /* bpf_loop helper function */
-
 // Define the callback function for bpf_loop
 static int increment_counter(void *ctx, int *counter) {
-  (*counter)++;
-  bpf_printk("Counting...");
-  return 0;
+    (*counter)++;
+    bpf_printk("Counting...");
+    return 0;
 }
 
-SEC("xdp")
-int xdp_prog_bpf_loop_callback(struct xdp_md *ctx) {
-  int counter = 0;
+SEC("tracepoint/syscalls/sys_enter_execve")
+int bpf_loop_callback(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-  // Use bpf_loop with the callback function
-  bpf_loop(NUM_LOOPS, increment_counter, &counter, 0);
+    // Use bpf_loop with the callback function
+    bpf_loop(NUM_LOOPS, increment_counter, &counter, 0);
 
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
 
 /* bpf_for helper function */
-
-extern int bpf_iter_num_new(struct bpf_iter_num *it, int start,
-                            int end) __weak __ksym;
+extern int bpf_iter_num_new(struct bpf_iter_num *it, int start, int end) __weak __ksym;
 extern int *bpf_iter_num_next(struct bpf_iter_num *it) __weak __ksym;
 extern void bpf_iter_num_destroy(struct bpf_iter_num *it) __weak __ksym;
 #ifndef bpf_for
@@ -117,22 +107,21 @@ extern void bpf_iter_num_destroy(struct bpf_iter_num *it) __weak __ksym;
        });)
 #endif /* bpf_for */
 
-SEC("xdp")
-int xdp_prog_bpf_for_helper(struct xdp_md *ctx) {
-  int counter = 0;
+SEC("tracepoint/syscalls/sys_enter_execve")
+int bpf_for_helper(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-  bpf_for(counter, 0, NUM_LOOPS) {
-    counter++;
-    bpf_printk("Counting...");
-  }
+    // Use bpf_for helper
+    bpf_for(counter, 0, NUM_LOOPS) {
+    	counter++;
+    	bpf_printk("Counting...");
+    }
 
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
 
 /* bpf_repeat helper function */
-
 #ifndef bpf_repeat
 /* bpf_repeat(N) performs N iterations without exposing iteration number
  *
@@ -155,16 +144,15 @@ int xdp_prog_bpf_for_helper(struct xdp_md *ctx) {
 )
 #endif /* bpf_repeat */
 
-SEC("xdp")
-int xdp_prog_bpf_repeat_helper(struct xdp_md *ctx) {
-  int counter = 0;
+SEC("tracepoint/syscalls/sys_enter_execve")
+int bpf_repeat_helper(struct trace_event_raw_sys_enter *ctx) {
+    int counter = 0;
 
-  bpf_repeat(NUM_LOOPS) {
-    counter++;
-    bpf_printk("Counting...");
-  }
+    bpf_repeat(NUM_LOOPS) {
+    	counter++;
+    	bpf_printk("Counting...");
+    }
 
-  bpf_printk("Counted %dx times", counter);
-
-  return XDP_PASS;
+    bpf_printk("Counted %dx times", counter);
+    return 0;
 }
