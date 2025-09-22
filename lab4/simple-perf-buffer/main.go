@@ -1,6 +1,6 @@
 package main
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 trace trace.c
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 perf perf.c
 
 import (
 	"bytes"
@@ -39,8 +39,8 @@ func main() {
 	}
 
 	// Load the compiled eBPF ELF and load it into the kernel.
-	var objs traceObjects
-	if err := loadTraceObjects(&objs, nil); err != nil {
+	var objs perfObjects
+	if err := loadPerfObjects(&objs, nil); err != nil {
 		log.Fatal("Loading eBPF objects:", err)
 	}
 	defer objs.Close()
@@ -57,7 +57,7 @@ func main() {
 	// A per-CPU page-sized buffer is typical; bump if you see lost samples.
 	reader, err := perf.NewReader(objs.Events, os.Getpagesize())
 	if err != nil {
-		log.Fatalf("opening perf reader: %v", err)
+		log.Fatalf("Opening perf reader: %v", err)
 	}
 	defer reader.Close()
 
@@ -80,13 +80,13 @@ func main() {
 
 			// perf can report lost samples.
 			if rec.LostSamples > 0 {
-				log.Printf("perf buffer: lost %d samples", rec.LostSamples)
+				log.Printf("Perf buffer: lost %d samples", rec.LostSamples)
 				continue
 			}
 
 			var ev event
 			if err := binary.Read(bytes.NewReader(rec.RawSample), binary.LittleEndian, &ev); err != nil {
-				fmt.Printf("failed to decode event: %v\n", err)
+				fmt.Printf("Failed to decode event: %v\n", err)
 				continue
 			}
 
