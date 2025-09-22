@@ -1,6 +1,6 @@
 package main
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 trace trace.c
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 perf perf.c
 
 import (
 	"bytes"
@@ -41,8 +41,8 @@ func main() {
 	}
 
 	// Load the compiled eBPF ELF and load it into the kernel.
-	var objs traceObjects
-	if err := loadTraceObjects(&objs, nil); err != nil {
+	var objs perfObjects
+	if err := loadPerfObjects(&objs, nil); err != nil {
 		log.Fatal("Loading eBPF objects:", err)
 	}
 	defer objs.Close()
