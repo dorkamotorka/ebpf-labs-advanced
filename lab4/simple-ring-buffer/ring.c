@@ -39,7 +39,7 @@ int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
     // (Optional) debug message visible via /sys/kernel/debug/tracing/trace_pipe
     bpf_printk("execve: pid=%d tgid=%d file=%s\n", e->pid, e->tgid, e->filename);
 
-    // Submit to userspace
+    // Submit to ring buffer 
     bpf_ringbuf_submit(e, 0);
     return 0;
 }
