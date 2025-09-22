@@ -4,10 +4,10 @@ package main
 
 import (
 	"context"
-        "log"
-        "os"
-        "os/signal"
-        "syscall"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
@@ -41,17 +41,17 @@ func main() {
 	*/
 
 	// Attach Tracepoint
-        tp, err := link.Tracepoint("syscalls", "sys_enter_execve", objs.BoundedLoop, nil)
-        if err != nil {
-                log.Fatalf("Attaching Tracepoint: %s", err)
-        }
-        defer tp.Close()
-        log.Printf("Successfully attached eBPF Tracepoint...")
+	tp, err := link.Tracepoint("syscalls", "sys_enter_execve", objs.BoundedLoop, nil)
+	if err != nil {
+		log.Fatalf("Attaching Tracepoint: %s", err)
+	}
+	defer tp.Close()
+	log.Printf("Successfully attached eBPF Tracepoint...")
 
 	// Wait for SIGINT/SIGTERM (Ctrl+C) before exiting
-        ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-        defer stop()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-        <-ctx.Done()
-        log.Println("Received signal, exiting...")
+	<-ctx.Done()
+	log.Println("Received signal, exiting...")
 }

@@ -3,11 +3,11 @@ package main
 //go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target amd64 trace trace.c
 
 import (
-        "context"
-        "log"
-        "os"
-        "os/signal"
-        "syscall"
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/rlimit"
@@ -25,7 +25,7 @@ func main() {
 		log.Fatal("Loading eBPF objects:", err)
 	}
 	defer objs.Close()
-	
+
 	// Attach Tracepoint
 	tp, err := link.Tracepoint("syscalls", "sys_enter_execve", objs.HandleExecveTp, nil)
 	if err != nil {
@@ -36,7 +36,7 @@ func main() {
 
 	// Attach Raw Tracepoint
 	rawtp, err := link.AttachRawTracepoint(link.RawTracepointOptions{
-		Name: "sys_enter", 
+		Name:    "sys_enter",
 		Program: objs.HandleExecveRawTp,
 	})
 	if err != nil {
@@ -45,7 +45,7 @@ func main() {
 	defer rawtp.Close()
 	log.Printf("Successfully attached eBPF Raw Tracepoint...")
 
-	// Attach kprobe 
+	// Attach kprobe
 	kprobe, err := link.Kprobe("__x64_sys_execve", objs.KprobeExecve, nil)
 	if err != nil {
 		log.Fatalf("Attaching kprobe: %v", err)
@@ -53,7 +53,7 @@ func main() {
 	defer kprobe.Close()
 	log.Printf("Successfully attached eBPF kprobe...")
 
-	// Attach fentry fprobe 
+	// Attach fentry fprobe
 	fentry, err := link.AttachTracing(link.TracingOptions{
 		Program: objs.FentryExecve,
 	})
@@ -74,9 +74,9 @@ func main() {
 	log.Printf("Successfully attached BTF-Enabled Tracepoint...")
 
 	// Wait for SIGINT/SIGTERM (Ctrl+C) before exiting
-        ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-        defer stop()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
-        <-ctx.Done()
-        log.Println("Received signal, exiting...")
+	<-ctx.Done()
+	log.Println("Received signal, exiting...")
 }

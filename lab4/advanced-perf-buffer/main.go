@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"syscall"
 	"sync"
-	"errors"
+	"syscall"
 
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/perf"
@@ -80,7 +80,7 @@ func main() {
 			if err != nil {
 				// When Close() is called, Read() returns an error; exit cleanly.
 				if errors.Is(err, perf.ErrClosed) {
-					return	
+					return
 				}
 
 				log.Fatalf("Failed to read perf event: %v", err)
@@ -88,10 +88,10 @@ func main() {
 			} else {
 				if len(rec.RawSample) > 0 {
 					select {
-                                    	case recordsQueue <- &rec:
-                                    	default:
-                                            	log.Printf("recordsQueue channel is full, drop the event")
-                                    	}
+					case recordsQueue <- &rec:
+					default:
+						log.Printf("recordsQueue channel is full, drop the event")
+					}
 				}
 
 				// perf can report lost samples.

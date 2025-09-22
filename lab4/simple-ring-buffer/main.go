@@ -13,8 +13,8 @@ import (
 	"syscall"
 
 	"github.com/cilium/ebpf/link"
-	"github.com/cilium/ebpf/rlimit"
 	"github.com/cilium/ebpf/ringbuf"
+	"github.com/cilium/ebpf/rlimit"
 )
 
 // Must match the C struct layout exactly!
