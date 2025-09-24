@@ -19,9 +19,10 @@ import (
 
 // Must match the C struct layout exactly!
 type event struct {
-	PID      uint32
-	TGID     uint32
-	Filename [256]byte
+	PID       uint32
+	TGID      uint32
+	Timestamp uint64
+	Filename  [256]byte
 }
 
 func cString(b []byte) string {
@@ -90,8 +91,8 @@ func main() {
 				continue
 			}
 
-			fmt.Printf("execve pid=%d tgid=%d file=%q\n",
-				ev.PID, ev.TGID, cString(ev.Filename[:]))
+			fmt.Printf("execve pid=%d tgid=%d file=%q ts=%d\n",
+				ev.PID, ev.TGID, cString(ev.Filename[:]), ev.Timestamp)
 		}
 	}()
 
