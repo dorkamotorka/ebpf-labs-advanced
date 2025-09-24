@@ -9,8 +9,9 @@ char _license[] SEC("license") = "GPL";
 #define ARGSIZE 256
 
 struct event {
-    u32 pid;
-    u32 tgid;
+    u32  pid;
+    u32  tgid;
+    u64  ts;
     char filename[ARGSIZE];
 };
 
@@ -27,6 +28,7 @@ int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
     u64 pid_tgid = bpf_get_current_pid_tgid();
     e.pid  = pid_tgid >> 32;
     e.tgid = (u32)pid_tgid;
+    e.ts   = bpf_ktime_get_ns();
 
     const char *filename_ptr = (const char *)BPF_CORE_READ(ctx, args[0]);
     bpf_core_read_user_str(e.filename, sizeof(e.filename), filename_ptr);
