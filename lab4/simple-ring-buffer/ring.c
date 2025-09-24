@@ -16,8 +16,22 @@ struct event {
 
 struct {
     __uint(type, BPF_MAP_TYPE_RINGBUF);
-    __uint(max_entries, 1 << 24); // 16 MiB
+    __uint(max_entries, 1 << 24);
 } events SEC(".maps");
+
+// Hardcoded, but could also be adjustable from user space
+const long wakeup_data_size = 2048;
+
+static __always_inline long get_flags() {
+    long sz;
+
+    if (!wakeup_data_size) {
+	return 0;
+    }
+
+    sz = bpf_ringbuf_query(&events, BPF_RB_AVAIL_DATA);
+    return sz >= wakeup_data_size ? BPF_RB_FORCE_WAKEUP : BPF_RB_NO_WAKEUP;
+}
 
 SEC("tracepoint/syscalls/sys_enter_execve")
 int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
@@ -39,7 +53,9 @@ int handle_execve_tp(struct trace_event_raw_sys_enter *ctx) {
     // (Optional) debug message visible via /sys/kernel/debug/tracing/trace_pipe
     bpf_printk("execve: pid=%d tgid=%d file=%s\n", e->pid, e->tgid, e->filename);
 
+    long flags = get_flags();
+
     // Submit to ring buffer 
-    bpf_ringbuf_submit(e, 0);
+    bpf_ringbuf_submit(e, flags);
     return 0;
 }
