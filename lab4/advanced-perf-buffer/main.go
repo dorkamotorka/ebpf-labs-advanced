@@ -57,7 +57,21 @@ func main() {
 
 	// Open a perf reader on the "events" PERF_EVENT_ARRAY map.
 	// A per-CPU page-sized buffer is typical; bump if you see lost samples.
-	reader, err := perf.NewReader(objs.Events, os.Getpagesize())
+	reader, err := perf.NewReaderWithOptions(objs.Events, os.Getpagesize(), perf.ReaderOptions{
+		// The number of events required in any per CPU buffer before
+		// Read will process data. This is mutually exclusive with Watermark.
+		// The default is zero, which means Watermark will take precedence.
+		WakeupEvents: 3,
+
+		// The number of written bytes required in any per CPU buffer before
+		// Read will process data. Must be smaller than PerCPUBuffer.
+		// The default is to start processing as soon as data is available.
+		// Watermark: 0,
+		//
+		// This perf ring buffer is overwritable, once full the oldest event will be
+		// overwritten by newest. The default is false.
+		// Overwritable: true,
+	})
 	if err != nil {
 		log.Fatalf("opening perf reader: %v", err)
 	}
