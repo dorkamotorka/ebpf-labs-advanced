@@ -1,4 +1,3 @@
-#include <linux/bpf.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 #include <bpf/bpf_endian.h>
@@ -32,13 +31,6 @@
 #define POSTGRES_MESSAGE_PARSE 'P' // 'P' + 4 bytes of length + query
 #define POSTGRES_MESSAGE_BIND 'B' // 'P' + 4 bytes of length + query
 
-struct trace_entry {
-	short unsigned int type;
-	unsigned char flags;
-	unsigned char preempt_count;
-	int pid;
-};
-
 struct socket_key {
     __u64 fd;
     __u32 pid;
@@ -50,28 +42,6 @@ struct read_args {
     char* buf;
     __u64 size;
     __u64 read_start_ns;  
-};
-
-struct trace_event_raw_sys_enter_write {
-	struct trace_entry ent;
-    __s32 __syscall_nr;
-    __u64 fd;
-    char * buf;
-    __u64 count;
-};
-
-struct trace_event_raw_sys_enter_read{
-    struct trace_entry ent;
-    int __syscall_nr;
-    unsigned long int fd;
-    char * buf;
-    __u64 count;
-};
-
-struct trace_event_raw_sys_exit_read {
-    __u64 unused;
-    __s32 id;
-    __s64 ret;
 };
 
 struct l7_request {
