@@ -120,6 +120,8 @@ int xdp_program(struct xdp_md *ctx) {
 		bpf_printk("Destination port: %d", bpf_ntohs(tcp->dest));
 		bpf_printk("Sequence number: %d", bpf_ntohs(tcp->seq));
 		bpf_printk("Acknowledgment number: %d", bpf_ntohs(tcp->ack_seq));
+		bpf_printk("Flags: SYN=%d ACK=%d FIN=%d RST=%d PSH=%d URG=%d ECE=%d CWR=%d",
+        		tcp->syn, tcp->ack, tcp->fin, tcp->rst, tcp->psh, tcp->urg, tcp->ece, tcp->cwr);
 	} else if (ip_type == IPPROTO_UDP) {
 		bpf_printk("We have captured a UDP packet");
 		// Parse UDP header
