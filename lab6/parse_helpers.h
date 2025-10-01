@@ -8,6 +8,11 @@
 #define ETH_P_8021AD 0x88A8
 #define ETH_P_IP 0x0800
 #define ETH_P_IPV6 0x86DD
+#define ICMP_ECHOREPLY 0
+#define ICMP_ECHO 8
+#define IPPROTO_ICMPV6 58
+#define ICMPV6_ECHO_REQUEST 128
+#define ICMPV6_ECHO_REPLY 129
 
 #ifndef XDP_ACTION_MAX
 #define XDP_ACTION_MAX (XDP_REDIRECT + 1)
@@ -153,9 +158,6 @@ static __always_inline int parse_udphdr(struct hdr_cursor *nh,
 	return len;
 }
 
-/*
- * parse_tcphdr: parse and return the length of the tcp header
- */
 static __always_inline int parse_tcphdr(struct hdr_cursor *nh,
 					void *data_end,
 					struct tcphdr **tcphdr)
@@ -179,6 +181,36 @@ static __always_inline int parse_tcphdr(struct hdr_cursor *nh,
 	*tcphdr = h;
 
 	return len;
+}
+
+static __always_inline int parse_icmphdr(struct hdr_cursor *nh,
+					 void *data_end,
+					 struct icmphdr **icmphdr)
+{
+	struct icmphdr *icmph = nh->pos;
+
+	if ((void*)(icmph + 1) > data_end)
+		return -1;
+
+	nh->pos  = icmph + 1;
+	*icmphdr = icmph;
+
+	return icmph->type;
+}
+
+static __always_inline int parse_icmp6hdr(struct hdr_cursor *nh,
+					  void *data_end,
+					  struct icmp6hdr **icmp6hdr)
+{
+	struct icmp6hdr *icmp6h = nh->pos;
+
+	if ((void*)(icmp6h + 1) > data_end)
+		return -1;
+
+	nh->pos   = icmp6h + 1;
+	*icmp6hdr = icmp6h;
+
+	return icmp6h->icmp6_type;
 }
 
 #endif /* __PARSE_HELPERS_H */
