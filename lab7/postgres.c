@@ -44,7 +44,7 @@ struct {
 
 // Processing enter of write syscall triggered on the client side
 static __always_inline
-int process_enter_of_syscalls_write(void* ctx, __u64 fd, char* buf, __u64 payload_size){
+int process_enter_of_syscalls_write(__u64 fd, char* buf, __u64 payload_size){
     
     // Retrieve the l7_request struct from the eBPF map (check above the map definition, why we use per-CPU array map for this purpose)
     int zero = 0;
@@ -94,15 +94,15 @@ int process_enter_of_syscalls_write(void* ctx, __u64 fd, char* buf, __u64 payloa
 
 // Processing enter of read syscall triggered on the server side
 static __always_inline
-int process_enter_of_syscalls_read(struct trace_event_raw_sys_enter_read *ctx) {
+int process_enter_of_syscalls_read(__u64 fd, char* buf, __u64 payload_size) {
     __u64 id = bpf_get_current_pid_tgid();
 
     // Store an active read struct for later usage
     // Needed to pass fd, buf and count to sys_enter_exit
     struct read_args args = {};
-    args.fd = ctx->fd;
-    args.buf = ctx->buf;
-    args.size = ctx->count;
+    args.fd = fd;
+    args.buf = buf;
+    args.size = payload_size;
     long res = bpf_map_update_elem(&active_reads, &id, &args, BPF_ANY);
     if (res < 0) {
         bpf_printk("write to active_reads failed");     
@@ -152,7 +152,7 @@ int process_exit_of_syscalls_read(void* ctx, __s64 ret) {
 
     if (read_info->buf) {
         if (e->protocol == PROTOCOL_POSTGRES) {
-            e->status = parse_postgres_server_resp(read_info->buf, ret);
+            int ret = parse_postgres_server_resp(read_info->buf, ret);
             if (active_req->request_type == POSTGRES_MESSAGE_SIMPLE_QUERY) {
                 e->method = METHOD_SIMPLE_QUERY;
                 bpf_printk("Simple Query read on the Server\n");
@@ -179,21 +179,17 @@ int process_exit_of_syscalls_read(void* ctx, __s64 ret) {
     return 0;
 }
 
-
-// /sys/kernel/debug/tracing/events/syscalls/sys_enter_write/format
 SEC("tracepoint/syscalls/sys_enter_write")
-int handle_write(struct trace_event_raw_sys_enter_write* ctx) {
-    return process_enter_of_syscalls_write(ctx, ctx->fd, ctx->buf, ctx->count);
+int handle_write(struct trace_event_raw_sys_enter* ctx) {
+    return process_enter_of_syscalls_write(ctx->args[0], (char *)ctx->args[1], ctx->args[2]);
 }
 
-// /sys/kernel/debug/tracing/events/syscalls/sys_enter_read/format
 SEC("tracepoint/syscalls/sys_enter_read")
-int handle_read(struct trace_event_raw_sys_enter_read* ctx) {
-    return process_enter_of_syscalls_read(ctx);
+int handle_read(struct trace_event_raw_sys_enter* ctx) {
+    return process_enter_of_syscalls_read(ctx->args[0], (char *)ctx->args[1], ctx->args[2]);
 }
 
-// /sys/kernel/debug/tracing/events/syscalls/sys_exit_read/format
 SEC("tracepoint/syscalls/sys_exit_read")
-int handle_read_exit(struct trace_event_raw_sys_exit_read* ctx) {
-    return process_exit_of_syscalls_read(ctx, ctx->ret);
+int handle_read_exit(struct trace_event_raw_sys_exit* ctx, int ret) {
+    return process_exit_of_syscalls_read(ctx, ret);
 }
